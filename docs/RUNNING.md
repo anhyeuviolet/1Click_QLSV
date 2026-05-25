@@ -84,3 +84,63 @@ Phase 4 replaces the manual `python -m qlsv` launch with a `systemd` unit
 that starts on boot, restarts on crash, and writes logs to the system
 journal. For Phase 1 you launch it yourself; if the process dies you
 restart it yourself.
+
+---
+
+## Log của game services (Phase 2)
+
+Kể từ Phase 2, `scripts/jx.sh` không còn mở popup `xfce4-terminal` cho từng
+tiến trình game. Thay vào đó, mỗi binary được khởi động qua `nohup` và
+stdout/stderr được append vào file log riêng dưới `/var/log/qlsv/`.
+
+### Vị trí log
+
+**Per-service log** (do `scripts/jx.sh` ghi trực tiếp khi gọi
+`bash scripts/jx.sh start <svc>`):
+
+| Service     | File log                          |
+|-------------|-----------------------------------|
+| `goddess`   | `/var/log/qlsv/goddess.log`       |
+| `bishop`    | `/var/log/qlsv/bishop.log`        |
+| `s3relay`   | `/var/log/qlsv/s3relay.log`       |
+| `jx_linux`  | `/var/log/qlsv/jx_linux.log`      |
+
+**Per-job log** (web app sẽ tạo ở Plan 03 khi spawn jx.sh từ UI — note
+trước để admin biết nơi tìm):
+
+```
+/var/log/qlsv/jobs/<job_id>.log
+```
+
+Mỗi lần click nút Start/Stop trên dashboard sẽ tạo một file mới với
+`job_id` ngẫu nhiên; tail-pane trong UI đọc chính file này.
+
+### Tail log để debug từ SSH
+
+```bash
+# Theo dõi log của bishop trong real-time
+tail -f /var/log/qlsv/bishop.log
+
+# Theo dõi nhiều service một lúc
+tail -f /var/log/qlsv/*.log
+
+# Xem 200 dòng cuối của goddess
+tail -n 200 /var/log/qlsv/goddess.log
+```
+
+### Notes
+
+- `scripts/jx.sh` **tự `mkdir -p /var/log/qlsv`** mỗi lần chạy lệnh start —
+  admin không cần tạo thư mục trước.
+- File log mặc định kế thừa umask của root (thường `0644`); chỉ root đọc
+  được toàn bộ. Phase 3 sẽ điều chỉnh khi web app khởi tạo state dirs.
+- **Log không tự rotate ở Phase 2.** Game binary có thể chạy tuần liền và
+  file log sẽ phình lớn. Cơ chế logrotate sẽ thêm ở Phase 4 (deferred).
+  Trong thời gian chờ, admin có thể truncate thủ công khi cần:
+
+  ```bash
+  truncate -s 0 /var/log/qlsv/bishop.log
+  ```
+
+  Lệnh này không làm gián đoạn tiến trình đang ghi (file descriptor giữ
+  nguyên, nội dung bị xoá về 0 byte).
