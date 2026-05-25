@@ -190,6 +190,11 @@ def test_run_job_writes_exit_sidecar(isolated_paths, mock_script_exit_seven):
     assert b"hello" in log_bytes
     assert b"[__END__" not in log_bytes, "inline sentinel must NOT appear (H-5)"
 
+    # CR-01: log file MUST be 0o600 regardless of umask (default 0022 would
+    # otherwise produce 0644, world-readable — game stdout may leak IP/MAC/SQL).
+    mode = stat.S_IMODE(log_path.stat().st_mode)
+    assert mode == 0o600, f"log file mode is {mode:o}, expected 600 (CR-01)"
+
 
 @POSIX_ONLY
 def test_run_job_marks_started_on_zero_exit(isolated_paths, mock_script_exit_zero):

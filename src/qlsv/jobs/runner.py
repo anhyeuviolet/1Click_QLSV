@@ -191,7 +191,14 @@ async def _run_and_track(
     global _current_job
     exit_code = -1
     try:
-        with open(log_path, "ab") as logf:
+        # CR-01: open with explicit 0o600 so default umask 0022 can't leave the
+        # log world-readable (game stdout may contain IP/MAC/SQL output).
+        log_fd = os.open(
+            str(log_path),
+            os.O_WRONLY | os.O_CREAT | os.O_APPEND,
+            0o600,
+        )
+        with os.fdopen(log_fd, "ab") as logf:
             proc = await asyncio.create_subprocess_exec(
                 *argv,
                 stdout=logf,
