@@ -3,9 +3,10 @@
 Responsibilities:
 
 - ``run_job(action, service, config) -> job_id``: validate inputs against
-  ``ALLOWED_SERVICES``, **atomically** acquire the module-level
-  ``asyncio.Lock`` (``asyncio.wait_for(_lock.acquire(), timeout=0)``,
-  H-2), spawn ``bash scripts/jx.sh ...`` via
+  ``ALLOWED_SERVICES``, non-blocking acquire of the module-level
+  ``asyncio.Lock`` (``if _lock.locked(): raise; await _lock.acquire()``,
+  H-2 — single-threaded asyncio so check-then-acquire is race-free),
+  spawn ``bash scripts/jx.sh ...`` via
   ``asyncio.create_subprocess_exec`` (argv-list, no ``shell=True``,
   OPS-02), and return the 32-hex job id immediately. A background task
   ``_run_and_track`` collects the exit code, writes the
@@ -116,12 +117,18 @@ async def run_job(
         if service is not None:
             raise ValueError("Service không hợp lệ")
 
-    # H-2: atomic non-blocking acquire — no `if locked(): raise; await acquire()`
-    # race window between the check and the acquire.
-    try:
-        await asyncio.wait_for(_lock.acquire(), timeout=0)
-    except asyncio.TimeoutError:
+    # H-2: non-blocking acquire. The previous implementation used
+    # ``asyncio.wait_for(_lock.acquire(), timeout=0)`` which on CPython 3.11+
+    # ALWAYS raises TimeoutError — even when the lock is free — because
+    # ``wait_for`` schedules the acquire as a task and the timeout=0 callback
+    # fires before the task gets a chance to run. That made every Start/Stop
+    # action return 409 lock-busy. The check-then-acquire pattern is safe in
+    # single-threaded asyncio: no other coroutine can interleave between
+    # ``locked()`` and the synchronous-fast-path of ``acquire()`` (when the
+    # lock is free, ``acquire()`` does not suspend).
+    if _lock.locked():
         raise LockBusy()
+    await _lock.acquire()
 
     # From here on we OWN the lock; on any error path BEFORE _run_and_track
     # is scheduled we must release it.

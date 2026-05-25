@@ -131,6 +131,44 @@ def test_run_job_rejects_none_service_for_start(isolated_paths):
     asyncio.run(_do())
 
 
+def test_run_job_acquires_free_lock_without_raising_lockbusy(isolated_paths, tmp_path):
+    """Regression for the asyncio.wait_for(coro, timeout=0) bug.
+
+    On CPython 3.11+, ``asyncio.wait_for(lock.acquire(), timeout=0)`` raises
+    TimeoutError even when the lock is FREE — the timeout callback fires
+    before the acquire-task runs. The original Phase 2 implementation used
+    that pattern as a non-blocking try-acquire, which made every Start/Stop
+    action return 409 lock-busy. This test confirms the corrected pattern
+    (``if locked(): raise; await acquire()``) actually acquires when free.
+    Runs on every platform (no subprocess) — Windows CI would have caught
+    the original bug had this test existed.
+    """
+    # Point SCRIPT at a non-executable path; we don't care if jx.sh runs —
+    # we only assert that run_job() returns a job_id (lock acquired) rather
+    # than raising LockBusy. The background _run_and_track will fail to
+    # exec the script, but the lock acquire happens BEFORE that.
+    mock = tmp_path / "noop.sh"
+    mock.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
+
+    async def _do():
+        assert not runner._lock.locked(), "precondition: lock must be free"
+        job_id = await runner.run_job("start_all", None, {"game": {}})
+        assert isinstance(job_id, str) and len(job_id) == 32
+        # Drain the background task; whether the subprocess works is irrelevant.
+        for _ in range(40):
+            if not runner._lock.locked():
+                break
+            await asyncio.sleep(0.05)
+
+    import qlsv.jobs.runner as r
+    original_script = r.SCRIPT
+    r.SCRIPT = mock
+    try:
+        asyncio.run(_do())
+    finally:
+        r.SCRIPT = original_script
+
+
 # --------------------------------------------------------------------------- #
 # Subprocess + state + exit sidecar (POSIX only — needs bash)                  #
 # --------------------------------------------------------------------------- #

@@ -87,8 +87,13 @@ body.app-shell {
   border-radius: var(--radius-card);
   padding: var(--space-lg);
   box-shadow: var(--shadow-card);
-  max-width: 360px;
   width: 100%;
+}
+
+/* Login card is a 360-wide centered form; dashboard cards (service table,
+   history dropdown, IP/MAC) need to span the full app-main column. */
+body.login-shell .card {
+  max-width: 360px;
 }
 
 .card-heading {
@@ -411,6 +416,16 @@ body.app-shell {
   align-items: center;
   gap: var(--space-md);
   margin: var(--space-md) 0;
+}
+
+/* Login button uses width: 100% to fill its form column. In the dashboard
+   action bar (and the inline service-row actions) buttons should size to
+   their label, not stretch the flex row. */
+.action-bar .btn-primary,
+.action-bar .btn-destructive,
+.service-table-actions .btn-primary,
+.service-table-actions .btn-destructive {
+  width: auto;
 }
 
 .action-bar-spacer {
