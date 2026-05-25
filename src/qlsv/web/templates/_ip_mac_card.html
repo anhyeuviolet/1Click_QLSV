@@ -26,7 +26,7 @@
     <form class="ip-mac-row" method="post" action="/api/network/save"
           hx-post="/api/network/save" hx-target="#ip-mac-card" hx-swap="outerHTML">
       <label>
-        {{ t.ip_mac_iface_label }}
+        {{ t.ip_mac_ip_label }}
         <select name="iface"
                 hx-get="/api/network/preview"
                 hx-trigger="change"
@@ -34,11 +34,10 @@
                 hx-swap="outerHTML"
                 hx-include="this">
           {% for i in interfaces %}
-          <option value="{{ i.interface }}" {% if i.interface == selected %}selected{% endif %}>{{ i.interface }}</option>
+          <option value="{{ i.interface }}" {% if i.interface == selected %}selected{% endif %}>{{ i.ip }} ({{ i.interface }})</option>
           {% endfor %}
         </select>
       </label>
-      <label>{{ t.ip_mac_ip_label }}<input type="text" readonly value="{{ current_iface.ip }}"></label>
       <label>{{ t.ip_mac_mac_label }}<input type="text" readonly value="{{ current_iface.mac }}"></label>
       <button type="submit" class="btn-primary">{{ t.ip_mac_save_btn }}</button>
     </form>

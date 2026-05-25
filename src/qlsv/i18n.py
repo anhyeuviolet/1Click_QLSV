@@ -117,6 +117,21 @@ TRANSLATION: dict[str, str] = {
     ),
     "ip_mac_iface_not_found": "Giao diện mạng không tồn tại",
 
+    # ---- Phase-2 gap closure: game directory picker (parity với 2.3.2/app.py:684) ----
+    "card_game_dir_heading": "Thư mục server",
+    "game_dir_input_label": "Đường dẫn thư mục game",
+    "game_dir_save_btn": "Lưu thư mục",
+    "game_dir_saved_message": "Đã lưu thư mục server.",
+    "game_dir_suggestions_label": "Phát hiện trên máy chủ:",
+    "game_dir_error_empty": "Vui lòng nhập đường dẫn.",
+    "game_dir_error_relative": "Phải là đường dẫn tuyệt đối (bắt đầu bằng /).",
+    "game_dir_error_missing": "Đường dẫn không tồn tại trên máy chủ.",
+    "game_dir_error_not_dir": "Đường dẫn không phải là thư mục.",
+    "game_dir_error_not_jx_tree": (
+        "Thư mục không chứa cấu trúc JX1 hợp lệ — thiếu thư mục con "
+        "\"gateway\" hoặc \"server1\"."
+    ),
+
     # ---- Legacy keys merged from 2.3.2/app.py:36-52 ----
     # (package version available via qlsv.__version__; legacy version key dropped)
     "app_title": "Quản lý server",

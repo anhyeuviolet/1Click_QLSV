@@ -580,3 +580,84 @@ body.login-shell .card {
   color: var(--color-text);
   background: var(--color-card);
 }
+
+/* ------------------------------------------------------------------------- */
+/* Phase-2 gap closure — game directory picker card                          */
+/* ------------------------------------------------------------------------- */
+
+.game-dir-card {
+  max-width: none;
+  margin-bottom: var(--space-lg);
+}
+
+.game-dir-row {
+  display: flex;
+  gap: var(--space-md);
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.game-dir-row label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  flex: 1 1 360px;
+}
+
+.game-dir-input {
+  height: 40px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input, 6px);
+  font: 400 16px/1 var(--font-stack);
+  color: var(--color-text);
+  background: var(--color-card);
+  width: 100%;
+}
+
+.game-dir-row button[type="submit"] {
+  align-self: end;
+  min-width: 140px;
+  width: auto;
+}
+
+.game-dir-saved {
+  color: var(--color-status-running);
+  background: var(--color-status-running-bg);
+  border-radius: var(--radius-input, 6px);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+  font-size: 14px;
+}
+
+.game-dir-error {
+  color: var(--color-status-crashed);
+  background: var(--color-status-crashed-bg);
+  border-left: 3px solid var(--color-status-crashed);
+  border-radius: var(--radius-banner, 4px);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-md);
+  font-size: 14px;
+}
+
+.game-dir-suggestions {
+  margin-top: var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.game-dir-suggestions-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.game-dir-suggestion {
+  width: auto;
+  font-size: 13px;
+  padding: var(--space-xs) var(--space-sm);
+  height: auto;
+}

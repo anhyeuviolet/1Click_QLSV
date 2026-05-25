@@ -1,0 +1,39 @@
+{# Game directory selector card — post-Phase-2 UX-parity gap closure.
+
+   Web equivalent of 2.3.2/app.py:684 (Tkinter filedialog.askdirectory).
+   Wrapper id ``game-dir-card`` is the HTMX swap target for the form POST.
+   ``suggestions`` is a list of paths under /home or /opt that look like
+   JX1 trees (contain gateway/ + server1/); admin can click one to fill
+   the input.
+#}
+<section class="card game-dir-card" id="game-dir-card">
+  <h2>{{ t.card_game_dir_heading }}</h2>
+  {% if saved %}
+    <div class="game-dir-saved">{{ t.game_dir_saved_message }}</div>
+  {% endif %}
+  <form class="game-dir-row" method="post" action="/api/game/directory"
+        hx-post="/api/game/directory" hx-target="#game-dir-card" hx-swap="outerHTML">
+    <label>
+      {{ t.game_dir_input_label }}
+      <input type="text" name="directory" value="{{ current_dir }}"
+             placeholder="/home/jxser_8.1_vinh"
+             class="game-dir-input"
+             autocomplete="off"
+             spellcheck="false">
+    </label>
+    <button type="submit" class="btn-primary">{{ t.game_dir_save_btn }}</button>
+  </form>
+  {% if error %}
+    <div class="game-dir-error" role="alert">{{ error }}</div>
+  {% endif %}
+  {% if suggestions %}
+    <div class="game-dir-suggestions">
+      <span class="game-dir-suggestions-label">{{ t.game_dir_suggestions_label }}</span>
+      {% for path in suggestions %}
+        <button type="button"
+                class="btn-ghost game-dir-suggestion"
+                onclick="document.querySelector('.game-dir-input').value='{{ path }}'">{{ path }}</button>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>

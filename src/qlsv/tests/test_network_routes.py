@@ -282,3 +282,68 @@ def test_dashboard_history_card_rendered_with_correct_htmx_attrs(
     assert 'hx-swap="outerHTML"' in body
     # No leftover placeholder syntax (H-4 regression guard).
     assert "{this.value}" not in body
+
+
+# --------------------------------------------------------------------------- #
+# Phase-2 gap-closure: game directory picker                                   #
+# --------------------------------------------------------------------------- #
+
+
+def test_get_game_dir_unauth_redirects(all_dead, no_ifaces):
+    c = _client()
+    r = c.get("/api/game/directory")
+    assert r.status_code == 302
+    assert "/login" in r.headers.get("location", "")
+
+
+def test_post_game_dir_unauth_redirects(all_dead, no_ifaces):
+    c = _client()
+    r = c.post("/api/game/directory", data={"directory": "/tmp"})
+    assert r.status_code == 302
+
+
+def test_post_game_dir_rejects_relative_path(all_dead, no_ifaces):
+    c = _login(_client())
+    r = c.post("/api/game/directory", data={"directory": "relative/path"})
+    assert r.status_code == 200  # Card re-renders with error inline
+    assert "tuyệt đối" in r.text
+
+
+def test_post_game_dir_rejects_missing_path(all_dead, no_ifaces):
+    c = _login(_client())
+    r = c.post("/api/game/directory", data={"directory": "/nonexistent-jx-dir-xyz"})
+    assert r.status_code == 200
+    assert "không tồn tại" in r.text
+
+
+_POSIX_PATH = pytest.mark.skipif(
+    not __import__("sys").platform.startswith(("linux", "darwin")),
+    reason="path-shape validation requires absolute POSIX paths",
+)
+
+
+@_POSIX_PATH
+def test_post_game_dir_rejects_dir_without_jx_subtrees(all_dead, no_ifaces, tmp_path):
+    c = _login(_client())
+    r = c.post("/api/game/directory", data={"directory": str(tmp_path)})
+    assert r.status_code == 200
+    assert "JX1" in r.text
+
+
+@_POSIX_PATH
+def test_post_game_dir_accepts_valid_jx_tree_and_persists(
+    all_dead, no_ifaces, tmp_path, monkeypatch
+):
+    # Build a valid skeleton: tmp_path/gateway/ + tmp_path/server1/
+    (tmp_path / "gateway").mkdir()
+    (tmp_path / "server1").mkdir()
+
+    saved = {}
+    from qlsv import config as config_module
+    monkeypatch.setattr(config_module, "save_config", lambda cfg: saved.update(cfg))
+
+    c = _login(_client())
+    r = c.post("/api/game/directory", data={"directory": str(tmp_path)})
+    assert r.status_code == 200
+    assert "Đã lưu" in r.text
+    assert saved["game"]["directory"] == str(tmp_path.resolve())

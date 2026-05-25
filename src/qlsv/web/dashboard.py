@@ -220,6 +220,7 @@ def dashboard_root(request: Request) -> Response:
 
     cfg = getattr(request.app.state, "config", {}) or {}
     ip_mac_ctx = _resolve_ip_mac_context(cfg)
+    game_dir = (cfg.get("game") or {}).get("directory", "")
 
     templates = request.app.state.templates
     return templates.TemplateResponse(
@@ -248,6 +249,11 @@ def dashboard_root(request: Request) -> Response:
             "show_save_success_toast": False,
             # Plan 04 — history dropdown
             "history_jobs": history_options,
+            # Phase-2 gap closure — game directory picker
+            "current_dir": game_dir,
+            "error": None,
+            "saved": False,
+            "suggestions": [],
         },
     )
 

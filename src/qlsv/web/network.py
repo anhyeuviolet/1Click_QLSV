@@ -1,4 +1,6 @@
 """POST /api/network/save + GET /api/network/preview (Plan 02-04 D-15 / D-16 / M-7).
+Plus POST /api/game/directory (post-Phase-2 UX-parity gap — original
+``2.3.2/app.py:684`` had a Tkinter folder picker we missed).
 
 Both routes are auth-gated. The form / query parameter ``iface`` must match
 an interface name returned by ``qlsv.net.get_all_network_interfaces`` — strict
@@ -12,6 +14,8 @@ atomically with mode 0600 via ``qlsv.config.save_config`` (which delegates to
 the new IP/MAC via ``gameconfigs/*.cfg`` sync at start time.
 """
 from __future__ import annotations
+
+from pathlib import Path
 
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
@@ -131,4 +135,119 @@ def network_save(request: Request, iface: str = Form(...)) -> Response:
         show_reconfig_banner=show_reconfig_banner,
         show_save_success_toast=True,
         extra_headers={"HX-Trigger": "ip-mac-saved"},
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Game directory selector — restores UX parity with 2.3.2/app.py:684          #
+# (Tkinter filedialog.askdirectory). Phase-2 gap-closure.                     #
+# --------------------------------------------------------------------------- #
+
+
+def _validate_game_dir(raw: str) -> tuple[Path | None, str | None]:
+    """Return (resolved_path, error_message).
+
+    Accepted iff: absolute, exists, is a directory, contains both
+    ``gateway/`` and ``server1/`` (the two subtrees jx.sh actually cds into).
+    No symlink-escape: the resolved path itself does not need to live under
+    any prefix — admins legitimately keep game trees under /home/* or /opt/* —
+    but it MUST be a real directory after ``resolve(strict=True)``.
+    """
+    raw = raw.strip()
+    if not raw:
+        return None, TRANSLATION["game_dir_error_empty"]
+    if not raw.startswith("/"):
+        return None, TRANSLATION["game_dir_error_relative"]
+    try:
+        p = Path(raw).resolve(strict=True)
+    except (OSError, RuntimeError):
+        return None, TRANSLATION["game_dir_error_missing"]
+    if not p.is_dir():
+        return None, TRANSLATION["game_dir_error_not_dir"]
+    if not (p / "gateway").is_dir() or not (p / "server1").is_dir():
+        return None, TRANSLATION["game_dir_error_not_jx_tree"]
+    return p, None
+
+
+def _render_game_dir_card(
+    request: Request,
+    *,
+    current: str,
+    error: str | None = None,
+    saved: bool = False,
+    suggestions: list[str] | None = None,
+) -> Response:
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        "_game_dir_card.html",
+        {
+            "request": request,
+            "t": TRANSLATION,
+            "current_dir": current,
+            "error": error,
+            "saved": saved,
+            "suggestions": suggestions or [],
+        },
+    )
+
+
+def _scan_jx_trees(roots: tuple[str, ...] = ("/home", "/opt")) -> list[str]:
+    """Find directories under ``roots`` that look like a JX1 server tree.
+
+    A candidate must contain both ``gateway/`` and ``server1/``. Bounded
+    scan: only direct children of each root, never recursive. Silent on
+    permission / missing-root errors.
+    """
+    found: list[str] = []
+    for root in roots:
+        try:
+            entries = list(Path(root).iterdir())
+        except OSError:
+            continue
+        for entry in entries:
+            try:
+                if entry.is_dir() and (entry / "gateway").is_dir() and (entry / "server1").is_dir():
+                    found.append(str(entry))
+            except OSError:
+                continue
+    return sorted(set(found))
+
+
+@router.get("/api/game/directory", include_in_schema=False)
+def game_dir_preview(request: Request) -> Response:
+    """Render the current directory card with scan suggestions."""
+    redirect = _auth_or_redirect(request)
+    if redirect is not None:
+        return redirect
+
+    cfg = request.app.state.config
+    current = (cfg.get("game") or {}).get("directory", "")
+    return _render_game_dir_card(
+        request, current=current, suggestions=_scan_jx_trees()
+    )
+
+
+@router.post("/api/game/directory", include_in_schema=False)
+def game_dir_save(request: Request, directory: str = Form(...)) -> Response:
+    """Validate + persist ``game.directory``."""
+    redirect = _auth_or_redirect(request)
+    if redirect is not None:
+        return redirect
+
+    resolved, err = _validate_game_dir(directory)
+    if err is not None:
+        return _render_game_dir_card(
+            request,
+            current=directory,
+            error=err,
+            suggestions=_scan_jx_trees(),
+        )
+
+    cfg = request.app.state.config
+    game = cfg.setdefault("game", {})
+    game["directory"] = str(resolved)
+    config_module.save_config(cfg)
+
+    return _render_game_dir_card(
+        request, current=str(resolved), saved=True, suggestions=_scan_jx_trees()
     )
