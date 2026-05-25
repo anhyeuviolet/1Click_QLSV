@@ -8,10 +8,8 @@ Contract (Plan 02 <interfaces>):
 Credentials are read from `request.app.state.config["admin"]` — never hardcoded.
 Comparison uses `secrets.compare_digest` (D-04) on bytes to avoid timing leaks.
 
-NOTE on i18n: Plan 03 Task 1 owns `src/qlsv/i18n.py` and is running in parallel.
-Per the parallel-coordination instruction this executor must NOT touch that file.
-Vietnamese copy here is therefore inlined as module-private constants; Plan 03
-or a follow-up refactor will replace these with `TRANSLATION[...]` lookups.
+Vietnamese copy is sourced from `qlsv.i18n.TRANSLATION` (delivered by Plan 03
+Task 1) — no fallback dict, no inline overrides.
 """
 from __future__ import annotations
 
@@ -22,10 +20,9 @@ from typing import Optional
 from fastapi import APIRouter, Form, HTTPException, Request, status
 from fastapi.responses import RedirectResponse, Response
 
-router = APIRouter()
+from qlsv.i18n import TRANSLATION
 
-# Inlined Vietnamese copy — see module docstring for the i18n hand-off note.
-_LOGIN_ERROR_INVALID = "Tên đăng nhập hoặc mật khẩu không đúng"
+router = APIRouter()
 
 
 def _is_safe_next(next_url: Optional[str]) -> Optional[str]:
@@ -118,7 +115,7 @@ def login_submit(
         "login.html",
         {
             "request": request,
-            "error": _LOGIN_ERROR_INVALID,
+            "error": TRANSLATION["login_error_invalid"],
             "username": username,
             "next": _is_safe_next(next),
         },
