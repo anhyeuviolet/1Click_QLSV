@@ -139,3 +139,21 @@ calls at runtime — so the host stays usable on air-gapped LAN deployments.
   the asset was vendored — if the JS is ever upgraded, regenerate the
   sidecar (`sha256sum htmx.min.js > htmx.min.js.sha256`) and update this
   line in lock-step.
+
+### HTMX SSE extension
+
+- htmx-ext-sse.min.js: SHA-256 = 83eca6fa0611fe2b0bf1700b424b88b5eced38ef448ef9760a2ea08fbc875611
+
+  Version: 2.2.2 (matches htmx 2.x major). Upstream source:
+  https://unpkg.com/htmx-ext-sse@2.2.2/sse.js (npm package
+  `htmx-ext-sse`, GitHub
+  `bigskysoftware/htmx-extensions/src/sse/sse.js`). Vendored verbatim
+  as `src/qlsv/web/static/htmx-ext-sse.min.js`; the sidecar
+  `htmx-ext-sse.min.js.sha256` is the ground truth — regenerate
+  with `sha256sum htmx-ext-sse.min.js > htmx-ext-sse.min.js.sha256` and
+  update this line in lock-step on any version bump.
+
+  Loaded after `htmx.min.js` in `base.html`. Powers the live tail-pane on
+  the dashboard (Plan 02-03 DASH-04): `<pre hx-ext="sse"
+  sse-connect="/api/jobs/log?job_id=...&mode=stream" sse-swap="message"
+  hx-swap="beforeend">`.
