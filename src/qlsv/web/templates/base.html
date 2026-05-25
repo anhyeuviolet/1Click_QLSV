@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Quản lý server{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script defer src="/static/htmx.min.js"></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+{% block header %}{% endblock %}
+{% block content %}{% endblock %}
+</body>
+</html>

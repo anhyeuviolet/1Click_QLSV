@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Quản lý server — Trang chính{% endblock %}
+{% block body_class %}app-shell{% endblock %}
+{% block header %}
+<header class="header-bar">
+  <div class="header-bar-title">Quản lý server</div>
+  <div class="header-bar-spacer"></div>
+  <div class="header-bar-user">Đã đăng nhập: {{ username }}</div>
+  <form method="post" action="/logout">
+    <button type="submit" class="btn-ghost">Đăng xuất</button>
+  </form>
+</header>
+{% endblock %}
+{% block content %}
+<main class="app-main">
+  <h1>Trang chính</h1>
+  <p>Bảng điều khiển sẽ được bổ sung ở các giai đoạn tiếp theo. Hiện tại bạn đã đăng nhập thành công.</p>
+</main>
+{% endblock %}

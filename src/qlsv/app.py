@@ -1,17 +1,27 @@
 """FastAPI app factory.
 
-Plan 01 wires only the placeholder dashboard router and the /healthz smoke
-endpoint. Plan 03 will add SessionMiddleware and the auth router against this
-same factory — the signature `create_app(config: dict) -> FastAPI` is the
-contract Plan 03 builds on.
+Wires SessionMiddleware (signed cookies per D-05/D-06/D-07/D-08), the Jinja2
+template environment, the `/static` mount, and the `auth` + `dashboard` routers.
+
+Contract: `create_app(config: dict) -> FastAPI`. `config` is attached to
+`app.state.config`; templates are attached to `app.state.templates`.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 
 from qlsv import __version__
-from qlsv.web import dashboard
+from qlsv.web import auth, dashboard
+
+_WEB_DIR = Path(__file__).parent / "web"
+_TEMPLATES_DIR = _WEB_DIR / "templates"
+_STATIC_DIR = _WEB_DIR / "static"
 
 
 def create_app(config: dict) -> FastAPI:
@@ -24,12 +34,37 @@ def create_app(config: dict) -> FastAPI:
     )
     app.state.config = config
 
+    # Jinja2 environment (autoescape on by default).
+    templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
+    app.state.templates = templates
+
+    # Static assets (CSS + vendored htmx).
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+
+    # Session cookie contract — D-05/D-06/D-07/D-08, locked in 01-02-PLAN <interfaces>.
+    web_cfg = config.get("web", {}) or {}
+    session_cfg = config.get("session", {}) or {}
+    secret_key = session_cfg.get("secret_key")
+    if not secret_key:
+        # Fail-fast: config loader should already have caught this, but be defensive.
+        raise RuntimeError("session.secret_key is not configured")
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=secret_key,
+        session_cookie="session",
+        https_only=bool(web_cfg.get("cookie_secure", False)),
+        same_site="strict",
+        max_age=int(web_cfg.get("idle_timeout_seconds", 2592000)),
+    )
+
     # Framework-level health endpoint (Phase 4 monitor consumes this).
     @app.get("/healthz", include_in_schema=False)
     def healthz() -> JSONResponse:
         return JSONResponse({"status": "ok"})
 
-    # Placeholder dashboard router (Plan 03 swaps with auth + Jinja).
+    # Auth router: GET/POST /login, POST /logout.
+    app.include_router(auth.router)
+    # Dashboard router: GET /.
     app.include_router(dashboard.router)
 
     return app

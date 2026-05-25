@@ -1,25 +1,30 @@
-"""Placeholder dashboard router for Plan 01.
-
-Plan 03 replaces the cookie check with real SessionMiddleware-based auth and
-swaps the PlainTextResponse for a Jinja template.
-"""
+"""Dashboard route. Protected by `require_auth`; renders `dashboard.html`."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
-from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import RedirectResponse, Response
+
+from qlsv.web.auth import require_auth
 
 router = APIRouter()
 
 
 @router.get("/", include_in_schema=False)
-def dashboard_root(request: Request):
-    """Show the dashboard if a session cookie is present, else 302 to /login.
+def dashboard_root(request: Request) -> Response:
+    """Render the placeholder authenticated dashboard.
 
-    The session-cookie check is intentionally coarse in Plan 01 (any cookie
-    value passes). Plan 03 wires Starlette SessionMiddleware so a forged
-    cookie cannot pass (T-01-06).
+    Plan 02 replaces the cookie-presence placeholder with proper session-backed
+    auth via `require_auth`. Unauthenticated requests 302 to /login?next=/.
     """
-    if not request.cookies.get("session"):
-        # Preserve `next` so login can bounce admin back to where they were.
-        return RedirectResponse(url="/login?next=/", status_code=302)
-    return PlainTextResponse("Trang chính - placeholder", status_code=200)
+    try:
+        username = require_auth(request)
+    except HTTPException as exc:
+        # require_auth raised 302; honor it as a real redirect response.
+        location = (exc.headers or {}).get("Location", "/login")
+        return RedirectResponse(url=location, status_code=302)
+
+    templates = request.app.state.templates
+    return templates.TemplateResponse(
+        "dashboard.html",
+        {"request": request, "username": username},
+    )
