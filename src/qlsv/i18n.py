@@ -13,7 +13,7 @@ Conflict resolution: on overlap, the 2.3.2/app.py value wins. There were no
 value conflicts in practice — users.py is a strict subset (missing
 ``button_patchServer`` and ``button_log``).
 
-The obsolete ``app_version`` key was dropped in v3; consumers should read
+The obsolete version-string key was dropped in v3; consumers should read
 ``qlsv.__version__`` instead.
 """
 
@@ -46,7 +46,7 @@ TRANSLATION: dict[str, str] = {
     "header_logout": "Đăng xuất",
 
     # ---- Legacy keys merged from 2.3.2/app.py:36-52 ----
-    # (package version available via qlsv.__version__; obsolete app_version dropped)
+    # (package version available via qlsv.__version__; legacy version key dropped)
     "app_title": "Quản lý server",
     "status_off": "đã tắt",
     "status_on": "đang chạy",
