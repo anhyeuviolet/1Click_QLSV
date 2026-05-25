@@ -1,19 +1,35 @@
 {% extends "base.html" %}
-{% block title %}Quản lý server — Trang chính{% endblock %}
+{% block title %}{{ t.tab_title_dashboard }}{% endblock %}
 {% block body_class %}app-shell{% endblock %}
 {% block header %}
 <header class="header-bar">
-  <div class="header-bar-title">Quản lý server</div>
+  <div class="header-bar-title">{{ t.header_app_title }}</div>
   <div class="header-bar-spacer"></div>
-  <div class="header-bar-user">Đã đăng nhập: {{ username }}</div>
+  <div class="header-bar-user">{{ t.header_logged_in.format(username=username) }}</div>
   <form method="post" action="/logout">
-    <button type="submit" class="btn-ghost">Đăng xuất</button>
+    <button type="submit" class="btn-ghost">{{ t.header_logout }}</button>
   </form>
 </header>
 {% endblock %}
 {% block content %}
 <main class="app-main">
-  <h1>Trang chính</h1>
-  <p>Bảng điều khiển sẽ được bổ sung ở các giai đoạn tiếp theo. Hiện tại bạn đã đăng nhập thành công.</p>
+  <h1>{{ t.dashboard_h1 }}</h1>
+  {# IP/MAC card placeholder — plan 04 #}
+  {# Action bar placeholder — plan 03 #}
+  <section class="card">
+    <h2>{{ t.card_services_heading }}</h2>
+    <p class="action-bar-status" aria-live="polite">{{ refresh_hint }}</p>
+    <table class="service-table">
+      <thead>
+        <tr>
+          <th>{{ t.table_col_service }}</th>
+          <th>{{ t.table_col_status }}</th>
+          <th>{{ t.table_col_action }}</th>
+        </tr>
+      </thead>
+      {% include "_service_table.html" %}
+    </table>
+  </section>
+  {# Tail-pane + History placeholders — plan 03 #}
 </main>
 {% endblock %}

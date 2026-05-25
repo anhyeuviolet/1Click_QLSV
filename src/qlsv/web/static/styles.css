@@ -274,3 +274,83 @@ body.app-shell {
   color: var(--color-text);
   margin: 0 0 var(--space-md) 0;
 }
+
+/* ------------------------------------------------------------------------- */
+/* Phase 2 — status palette + service table + badges                         */
+/* (UI-SPEC § Token Reference / Component Patterns)                          */
+/* ------------------------------------------------------------------------- */
+
+:root {
+  /* Status palette — running / stopped / crashed */
+  --color-status-running: #166534;
+  --color-status-running-bg: #DCFCE7;
+  --color-status-stopped: #6B7280;
+  --color-status-stopped-bg: #F3F4F6;
+  --color-status-crashed: #B91C1C;
+  --color-status-crashed-bg: #FEE2E2;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.badge-running {
+  color: var(--color-status-running);
+  background: var(--color-status-running-bg);
+}
+
+.badge-stopped {
+  color: var(--color-status-stopped);
+  background: var(--color-status-stopped-bg);
+}
+
+.badge-crashed {
+  color: var(--color-status-crashed);
+  background: var(--color-status-crashed-bg);
+}
+
+.service-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.service-table thead th {
+  text-align: left;
+  padding: var(--space-md) var(--space-lg);
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.service-table tbody td {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  min-height: 48px;
+}
+
+.service-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.service-table tbody tr:hover {
+  background: #FAFAFA;
+}
+
+.service-table-actions {
+  display: inline-flex;
+  gap: var(--space-sm);
+}
+
+.action-bar-status {
+  text-align: right;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  margin-bottom: var(--space-md);
+}
