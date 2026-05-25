@@ -1,0 +1,6 @@
+Note: Nhớ backup file trước khi copy đè vào
+Sử dụng bản app quản lý 2.3.1
+
+Hướng dẫn:
+Dùng WinSCP copy đè 2 file app.py và jx.sh vào 1ClickVMFull theo đường dẫn
+/root/quanlyserver/2.3.1/

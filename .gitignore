@@ -1,0 +1,48 @@
+# ===== AI / Agent artifacts — NEVER track =====
+.planning/
+.claude/
+.claude*
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.cursor/
+.cursorrules
+.cursorignore
+.aider*
+.continue/
+.codeium/
+.windsurf/
+.copilot/
+.github/copilot-*
+.openhands/
+.devin/
+.roo/
+.cline/
+memory/
+.memory/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Editors =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ===== Logs / temp =====
+*.log
+*.tmp
+*.bak
