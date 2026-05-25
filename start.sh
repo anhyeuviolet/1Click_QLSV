@@ -44,7 +44,9 @@ done
 if [ ! -x "$VENV/bin/python" ]; then
   echo "Lan dau khoi dong — dang cai dat moi truong (~30s, can Internet)..."
   if command -v apt-get >/dev/null 2>&1; then
-    apt-get install -y python3-venv python3-pip >/dev/null
+    # xvfb cho Wine (Sword3PaySys.exe / S3RelayServer.exe headless),
+    # python3-venv/pip cho web app.
+    apt-get install -y python3-venv python3-pip xvfb >/dev/null
   fi
   python3 -m venv "$VENV"
   "$VENV/bin/pip" install --quiet --upgrade pip

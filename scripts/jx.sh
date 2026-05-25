@@ -176,13 +176,40 @@ gameserver_stop(){
 }
 
 
+# Ensure a persistent Xvfb on :99 so headless Wine apps (Sword3PaySys.exe /
+# S3RelayServer.exe) have an X display to bind to. The legacy Tkinter app
+# inherited DISPLAY from the XFCE session; the web refactor has no session,
+# so we need a virtual framebuffer. Idempotent — re-running start does not
+# spawn a second Xvfb.
+ensure_xvfb(){
+    if ! pgrep -f "Xvfb :99" > /dev/null; then
+        if ! command -v Xvfb > /dev/null; then
+            echoFormat "Loi: Xvfb chua duoc cai. Chay: sudo apt-get install -y xvfb"
+            return 1
+        fi
+        mkdir -p /var/log/qlsv
+        echoFormat "Khoi dong Xvfb :99 cho Wine"
+        nohup Xvfb :99 -screen 0 1024x768x16 -nolisten tcp >>/var/log/qlsv/xvfb.log 2>&1 &
+        disown
+        sleep 1
+    fi
+}
+
 paysys_start(){
     cleanUpLog
     syncConfig "127.0.0.1" "$SERVERIP"
     updateAddress "account_tong" "$SERVERIP"
     if ! pgrep -f "Sword3PaySys.exe" > /dev/null; then
+        ensure_xvfb || return 1
         echoFormat "Dang khoi dong Sword3PaySys.exe"
-        /root/serversetup/paysyswin/startPaysys.sh
+        mkdir -p /var/log/qlsv
+        export DISPLAY=:99
+        export WINEARCH=win32
+        export WINEPREFIX=/root/.win32
+        export GNUTLS_SYSTEM_PRIORITY_FILE=/root/serversetup/paysyswin/PaySys/priorityGNU
+        cd /root/serversetup/paysyswin && rm -rf payserver_log/*
+        nohup wine Sword3PaySys.exe >>/var/log/qlsv/paysys.log 2>&1 &
+        disown
         sleepAbit 3
         echoFormat "Da chay xong Sword3PaySys.exe"
     else
@@ -191,26 +218,33 @@ paysys_start(){
 }
 paysys_stop(){
     echoFormat "Dang tat Sword3PaySys.exe"
-    /root/serversetup/paysyswin/stopPaysys.sh
+    pkill -f "Sword3PaySys.exe" || true
     sleepAbit 2
     echoFormat "Da tat xong Sword3PaySys.exe"
 }
 
 
 relayserver_start(){
-
     if ! pgrep -f "S3RelayServer.exe" > /dev/null; then
+        ensure_xvfb || return 1
         echoFormat "Dang khoi dong S3RelayServer.exe"
-        /root/serversetup/paysyswin/startS3RelayServer.sh
+        mkdir -p /var/log/qlsv
+        export DISPLAY=:99
+        export WINEARCH=win32
+        export WINEPREFIX=/root/.win32
+        export GNUTLS_SYSTEM_PRIORITY_FILE=/root/serversetup/paysyswin/PaySys/priorityGNU
+        cd /root/serversetup/paysyswin && rm -rf relayserver_log/*
+        nohup wine S3RelayServer.exe >>/var/log/qlsv/relayserver.log 2>&1 &
+        disown
         sleepAbit 3
         echoFormat "Da chay xong S3RelayServer.exe"
     else
-        echoFormat "Da co S3RelayServer.exe dang chaycd "
+        echoFormat "Da co S3RelayServer.exe dang chay"
     fi
 }
 relayserver_stop(){
     echoFormat "Dang tat S3RelayServer.exe"
-    /root/serversetup/paysyswin/stopS3RelayServer.sh
+    pkill -f "S3RelayServer.exe" || true
     sleepAbit 2
     echoFormat "Da tat xong S3RelayServer.exe"
 }
