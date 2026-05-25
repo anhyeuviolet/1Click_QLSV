@@ -1,0 +1,34 @@
+{# Service status <tbody> partial (DASH-01 / DASH-02 / S-8).
+
+   Self-perpetuating: the <tbody> itself carries hx-get + hx-trigger so the
+   first poll cycle replaces this fragment with a fresh one carrying the
+   same attrs. Initial render is included from dashboard.html.
+
+   `rows` is a list of dicts with keys: service, label, status, badge_text.
+   `poll_interval` is the integer seconds for hx-trigger.
+   `services_empty_heading` / `services_empty_body` come from TRANSLATION
+   via the route context (defensive — D-13 hard-codes the 6 services so
+   the empty branch is effectively unreachable in production).
+#}
+<tbody hx-get="/api/services/status"
+       hx-trigger="every {{ poll_interval }}s"
+       hx-swap="outerHTML"
+       hx-target="this"
+       aria-live="polite">
+{% if rows|length == 0 %}
+  <tr>
+    <td colspan="3">
+      <strong>{{ services_empty_heading }}</strong><br>
+      {{ services_empty_body }}
+    </td>
+  </tr>
+{% else %}
+  {% for row in rows %}
+  <tr data-service="{{ row.service }}">
+    <td>{{ row.label }}</td>
+    <td><span class="badge badge-{{ row.status }}">{{ row.badge_text }}</span></td>
+    <td class="service-table-actions"><!-- Per-row Start/Stop sẽ ở plan 03 --></td>
+  </tr>
+  {% endfor %}
+{% endif %}
+</tbody>

@@ -40,6 +40,25 @@ TRANSLATION: dict[str, str] = {
         "Hiện tại bạn đã đăng nhập thành công."
     ),
 
+    # ---- Phase 2 dashboard (DASH-01 / DASH-02) ----
+    "dashboard_h1": "Trang chính",
+    "card_services_heading": "Trạng thái dịch vụ",
+    "table_col_service": "Dịch vụ",
+    "table_col_status": "Trạng thái",
+    "table_col_action": "Thao tác",
+    "badge_running": "● Đang chạy",
+    "badge_stopped": "● Đã dừng",
+    "badge_crashed": "● Crashed",
+    "refresh_hint_template": "Tự động làm mới mỗi {seconds} giây",
+    "services_empty_heading": "Chưa có dịch vụ nào để theo dõi",
+    "services_empty_body": (
+        "Cấu hình GAMEPATH trong /root/.quanlyserver.json rồi tải lại trang."
+    ),
+    # Plan 04 (M-7) will render this; key surfaced now for centralised i18n.
+    "warning.ip_mac_drift": (
+        "IP/MAC đã lưu không khớp interface hiện tại; vui lòng chọn lại và Lưu."
+    ),
+
     # ---- Authenticated header bar ----
     "header_app_title": "Quản lý server",
     "header_logged_in": "Đã đăng nhập: {username}",  # Jinja interpolates
