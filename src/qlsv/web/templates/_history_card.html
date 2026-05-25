@@ -1,0 +1,38 @@
+{# History dropdown card (Plan 02-04 H-3 / H-4 / D-08).
+
+   Correct HTMX semantics:
+     - hx-include="this" sends the <select>'s name=value as ?job_id=...
+     - Empty option (""):    /api/jobs/log?job_id=   → server returns
+                             tail-pane fragment WITH sse-connect (live mode).
+     - Non-empty option:     /api/jobs/log?job_id=<id> → server returns
+                             tail-pane fragment WITHOUT sse-connect (static).
+     - hx-target="#tail-pane" + hx-swap="outerHTML" replaces the wrapper:
+         * static mode: old SSE listener auto-disconnects because the DOM
+           node carrying it is destroyed.
+         * live mode: new fragment has sse-connect; base.html's
+           htmx:afterSwap handler calls htmx.process(#tail-pane) to let the
+           SSE extension scan attributes and open a new EventSource (H-3).
+
+   No JS in this template — the re-attach happens in base.html (Plan 03 j).
+   No `{this.value}` placeholder strings (H-4 lesson).
+#}
+<section class="card history-card" id="history-card">
+  <h2>{{ t.history_card_heading }}</h2>
+  {% if history_jobs %}
+    <label>{{ t.history_dropdown_label }}
+      <select name="job_id"
+              hx-get="/api/jobs/log"
+              hx-trigger="change"
+              hx-include="this"
+              hx-target="#tail-pane"
+              hx-swap="outerHTML">
+        <option value="">{{ t.history_default_option }}</option>
+        {% for j in history_jobs %}
+        <option value="{{ j.id }}">{{ j.display_label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  {% else %}
+    <p>{{ t.history_empty }}</p>
+  {% endif %}
+</section>

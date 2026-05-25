@@ -14,7 +14,7 @@
 {% block content %}
 <main class="app-main">
   <h1>{{ t.dashboard_h1 }}</h1>
-  {# IP/MAC card placeholder — plan 04 #}
+  {% include "_ip_mac_card.html" %}
 
   <div class="action-bar">
     <button class="btn-primary"
@@ -45,6 +45,6 @@
 
   {% include "_tail_pane.html" %}
 
-  {# History dropdown placeholder — wired in plan 04 #}
+  {% include "_history_card.html" %}
 </main>
 {% endblock %}

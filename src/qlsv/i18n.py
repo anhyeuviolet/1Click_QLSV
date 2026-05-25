@@ -96,6 +96,27 @@ TRANSLATION: dict[str, str] = {
     "action_label_stop": "Stop",
     "action_bar_running": "Đang chạy lệnh...",
 
+    # ---- Phase 2 Plan 04: IP/MAC selector card (DASH-04 / D-15 / D-16 / M-7) ----
+    "card_ip_mac_heading": "Cấu hình IP / MAC",
+    "ip_mac_iface_label": "Giao diện mạng",
+    "ip_mac_ip_label": "Địa chỉ IP",
+    "ip_mac_mac_label": "Địa chỉ MAC",
+    "ip_mac_save_btn": "Lưu cấu hình",
+    "ip_mac_save_success": "Đã lưu cấu hình IP / MAC",
+    "ip_mac_reconfig_banner": (
+        "Cấu hình IP / MAC đã đổi. Stop rồi Start lại để áp dụng "
+        "(gameconfigs/*.cfg sẽ được sync khi start)."
+    ),
+    "ip_mac_first_run_banner": (
+        "Chưa cấu hình IP / MAC. Hãy chọn giao diện rồi bấm "
+        "\"Lưu cấu hình\" trước khi khởi động dịch vụ."
+    ),
+    "ip_mac_no_ifaces_heading": "Không phát hiện giao diện mạng",
+    "ip_mac_no_ifaces_body": (
+        "Kiểm tra kết nối mạng của máy chủ rồi tải lại trang."
+    ),
+    "ip_mac_iface_not_found": "Giao diện mạng không tồn tại",
+
     # ---- Legacy keys merged from 2.3.2/app.py:36-52 ----
     # (package version available via qlsv.__version__; legacy version key dropped)
     "app_title": "Quản lý server",

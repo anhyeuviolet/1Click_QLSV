@@ -1,0 +1,46 @@
+{# IP/MAC selector card (Plan 02-04 D-15 / D-16 / M-7).
+
+   Wrapper id ``ip-mac-card`` is the HTMX swap target for both the preview
+   GET and the save POST. The dropdown sends ``hx-include="this"`` so its
+   ``name=iface`` flows to ``/api/network/preview?iface=<sel>`` on change,
+   producing an updated card with the readonly IP/MAC fields filled in.
+
+   Banners render via ``_banner_warning.html`` so the inline-warning copy
+   has exactly one source of truth.
+#}
+<section class="card ip-mac-card" id="ip-mac-card">
+  <h2>{{ t.card_ip_mac_heading }}</h2>
+  {% if not interfaces %}
+    <h3>{{ t.ip_mac_no_ifaces_heading }}</h3>
+    <p>{{ t.ip_mac_no_ifaces_body }}</p>
+  {% else %}
+    {% if first_run %}
+      {% with banner_message=t.ip_mac_first_run_banner %}{% include "_banner_warning.html" %}{% endwith %}
+    {% endif %}
+    {% if show_reconfig_banner %}
+      {% with banner_message=t.ip_mac_reconfig_banner %}{% include "_banner_warning.html" %}{% endwith %}
+    {% endif %}
+    {% if show_drift_banner %}
+      {% with banner_message=t['warning.ip_mac_drift'] %}{% include "_banner_warning.html" %}{% endwith %}
+    {% endif %}
+    <form class="ip-mac-row" method="post" action="/api/network/save"
+          hx-post="/api/network/save" hx-target="#ip-mac-card" hx-swap="outerHTML">
+      <label>
+        {{ t.ip_mac_iface_label }}
+        <select name="iface"
+                hx-get="/api/network/preview"
+                hx-trigger="change"
+                hx-target="#ip-mac-card"
+                hx-swap="outerHTML"
+                hx-include="this">
+          {% for i in interfaces %}
+          <option value="{{ i.interface }}" {% if i.interface == selected %}selected{% endif %}>{{ i.interface }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>{{ t.ip_mac_ip_label }}<input type="text" readonly value="{{ current_iface.ip }}"></label>
+      <label>{{ t.ip_mac_mac_label }}<input type="text" readonly value="{{ current_iface.mac }}"></label>
+      <button type="submit" class="btn-primary">{{ t.ip_mac_save_btn }}</button>
+    </form>
+  {% endif %}
+</section>

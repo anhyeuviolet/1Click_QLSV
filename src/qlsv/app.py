@@ -20,6 +20,7 @@ from qlsv import __version__
 from qlsv.config import ConfigError
 from qlsv.web import auth, dashboard
 from qlsv.web import jobs as web_jobs
+from qlsv.web import network as web_network
 from qlsv.web import services as web_services
 
 _WEB_DIR = Path(__file__).parent / "web"
@@ -76,5 +77,7 @@ def create_app(config: dict) -> FastAPI:
     # pins this.
     app.include_router(web_services.router)
     app.include_router(web_jobs.router)
+    # Plan 02-04 — POST /api/network/save, GET /api/network/preview.
+    app.include_router(web_network.router)
 
     return app
