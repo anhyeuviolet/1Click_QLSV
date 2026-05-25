@@ -135,6 +135,20 @@ def test_pgrep_patterns_match_legacy_binaries():
 
 
 def test_display_labels_match_ui_spec():
-    assert SERVICE_DISPLAY_LABELS["PaySys"] == "Sword3PaySys"
-    assert SERVICE_DISPLAY_LABELS["RelayServer"] == "S3RelayServer"
+    assert SERVICE_DISPLAY_LABELS["PaySys"] == "PaySys"
+    assert SERVICE_DISPLAY_LABELS["RelayServer"] == "RelayServer"
     assert SERVICE_DISPLAY_LABELS["bishop"] == "bishop"
+
+
+def test_render_order_matches_start_all_sequence():
+    """UI iteration order matches jx.sh full_start tier order:
+    PaySys + RelayServer (Wine), goddess + bishop + s3relay (gateway), jx_linux.
+    """
+    assert list(SERVICE_PGREP_PATTERNS.keys()) == [
+        "PaySys",
+        "RelayServer",
+        "goddess",
+        "bishop",
+        "s3relay",
+        "jx_linux",
+    ]

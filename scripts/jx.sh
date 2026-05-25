@@ -216,21 +216,36 @@ relayserver_stop(){
 }
 
 full_stop(){
-    gameserver_stop
+    # Stop sequence (specified by admin domain knowledge):
+    #   1. bishop FIRST — jx_linux_y follows the bishop signal and shuts down
+    #      gracefully (it saves character data while bishop's connection drops).
+    #   2. wait 15s for jx_linux to flush state, then stop s3relay.
+    #   3. PaySys + RelayServer (Wine) — parallel.
+    #   4. goddess LAST (it watches the other linux daemons; killing it earlier
+    #      would race with bishop/s3relay shutdown logging).
     bishop_stop
+    echoFormat "Cho 15 giay de jx_linux luu du lieu nhan vat (graceful)"
+    sleepAbit 15
+    s3relay_stop
+    paysys_stop &
+    relayserver_stop &
+    wait
     goddess_stop
-    paysys_stop
-    relayserver_stop
     echoFormat "Da tat toan bo"
 }
 
 full_start(){
-    paysys_start
-    relayserver_start
+    # Start sequence (specified by admin domain knowledge):
+    #   1. PaySys + RelayServer (Wine auth/relay) — parallel.
+    #   2. wait 10s for Wine processes to bind their ports.
+    #   3. goddess, bishop, s3relay (gateway tier) — sequential but no inter-wait.
+    #   4. jx_linux LAST — depends on the gateway tier being up.
+    paysys_start &
+    relayserver_start &
+    wait
     sleepAbit 10
     goddess_start
     bishop_start
-    sleepAbit 2
     s3relay_start
     sleepAbit 3
     gameserver_start

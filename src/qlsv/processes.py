@@ -36,24 +36,27 @@ ALLOWED_SERVICES: frozenset[str] = frozenset(
 
 # pgrep -f pattern per service. Linux binaries end with _y; Wine processes carry
 # the .exe suffix verbatim (per 2.3.2/app.py:639-647, 2.3.2/jx.sh:103,123,141,158).
+#
+# Iteration order = UI render order = start-all sequence:
+#   PaySys + RelayServer first (Wine auth/relay), then goddess + bishop + s3relay
+#   (gateway tier), finally jx_linux (game server, depends on the rest).
 SERVICE_PGREP_PATTERNS: dict[str, str] = {
-    "bishop": "bishop_y",
-    "goddess": "goddess_y",
-    "s3relay": "s3relay_y",
-    "jx_linux": "jx_linux_y",
     "PaySys": "Sword3PaySys.exe",
     "RelayServer": "S3RelayServer.exe",
+    "goddess": "goddess_y",
+    "bishop": "bishop_y",
+    "s3relay": "s3relay_y",
+    "jx_linux": "jx_linux_y",
 }
 
-# UI labels — per UI-SPEC §Copywriting Contract. Same identity for Linux
-# services, prettified for Wine processes.
+# UI labels — short Wine names that match the start/stop button vocabulary.
 SERVICE_DISPLAY_LABELS: dict[str, str] = {
-    "bishop": "bishop",
+    "PaySys": "PaySys",
+    "RelayServer": "RelayServer",
     "goddess": "goddess",
+    "bishop": "bishop",
     "s3relay": "s3relay",
     "jx_linux": "jx_linux",
-    "PaySys": "Sword3PaySys",
-    "RelayServer": "S3RelayServer",
 }
 
 
