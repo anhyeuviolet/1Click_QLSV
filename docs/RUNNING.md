@@ -16,10 +16,11 @@ sudo bash start.sh
 Lần đầu chạy (khoảng 30 giây, cần Internet) `start.sh` sẽ:
 
 1. Tạo virtualenv tại `./.venv` (qua `python3 -m venv`) và cài FastAPI/uvicorn/Jinja2 vào đó — không đụng system Python (PEP 668 safe trên Debian 12+/Ubuntu 24.04).
-2. Copy `configs/quanlyserver.example.json` → `/root/.quanlyserver.json`, sinh `session.secret_key` ngẫu nhiên, chmod 0600.
-3. In hướng dẫn: mở `/root/.quanlyserver.json`, sửa `admin.username` và `admin.password` thành giá trị thật, rồi chạy lại `sudo bash start.sh`.
+2. **Hỏi admin nhập `username` và `password` ngay tại terminal** (password che bằng `read -s`, phải gõ 2 lần để confirm).
+3. Ghi `/root/.quanlyserver.json` với username/password vừa nhập + `session.secret_key` sinh ngẫu nhiên, mode 0600 từ lúc tạo (qua `os.open` — không bao giờ world-readable kể cả trong một khoảnh khắc).
+4. Launch luôn — không cần `nano` hay restart.
 
-Lần thứ hai trở đi `start.sh` thấy `.venv/` và config đã có thì launch ngay — vài giây là app lên ở **http://&lt;server-ip&gt;:8080**.
+Lần thứ hai trở đi `start.sh` thấy `.venv/` và config đã có thì bỏ qua bootstrap, launch ngay — vài giây là app lên ở **http://&lt;server-ip&gt;:8080**.
 
 ### Phương án thủ công (dev / debug)
 
