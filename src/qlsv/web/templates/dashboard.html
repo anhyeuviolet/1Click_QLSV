@@ -15,10 +15,22 @@
 <main class="app-main">
   <h1>{{ t.dashboard_h1 }}</h1>
   {# IP/MAC card placeholder — plan 04 #}
-  {# Action bar placeholder — plan 03 #}
+
+  <div class="action-bar">
+    <button class="btn-primary"
+            hx-post="/api/services/start"
+            hx-swap="none"
+            {% if action_running %}disabled{% endif %}>{{ t.btn_start_all }}</button>
+    <button class="btn-destructive"
+            hx-post="/api/services/stop"
+            hx-swap="none"
+            {% if action_running %}disabled{% endif %}>{{ t.btn_stop_all }}</button>
+    <span class="action-bar-spacer"></span>
+    <span class="action-bar-status">{{ refresh_hint }}{% if action_running %} · {{ t.action_bar_running }}{% endif %}</span>
+  </div>
+
   <section class="card">
     <h2>{{ t.card_services_heading }}</h2>
-    <p class="action-bar-status" aria-live="polite">{{ refresh_hint }}</p>
     <table class="service-table">
       <thead>
         <tr>
@@ -30,6 +42,9 @@
       {% include "_service_table.html" %}
     </table>
   </section>
-  {# Tail-pane + History placeholders — plan 03 #}
+
+  {% include "_tail_pane.html" %}
+
+  {# History dropdown placeholder — wired in plan 04 #}
 </main>
 {% endblock %}

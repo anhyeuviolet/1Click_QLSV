@@ -64,6 +64,38 @@ TRANSLATION: dict[str, str] = {
     "header_logged_in": "Đã đăng nhập: {username}",  # Jinja interpolates
     "header_logout": "Đăng xuất",
 
+    # ---- Phase 2 Plan 03: Start/Stop + tail-pane + toast (DASH-03/04/05) ----
+    "btn_start_all": "▶ Start all",
+    "btn_stop_all": "■ Stop all",
+    "btn_start_row": "▶ Start",
+    "btn_stop_row": "■ Stop",
+    "tail_pane_heading": "Đầu ra",
+    "tail_pane_empty": (
+        "Chưa có lệnh nào được thực thi. Bấm \"Start all\" hoặc một nút Start để bắt đầu."
+    ),
+    "tail_pane_sublabel_running": "Đang chạy: {action} {service}",
+    "tail_pane_sublabel_done": "Hoàn tất: {action} {service} — exit {code}",
+    "tail_pane_sublabel_history": "Đang xem lịch sử: {action} {service} @ {ts}",
+    "tail_pane_sse_lost": "Mất kết nối luồng log. Đang kết nối lại...",
+    "tail_pane_job_pruned": "Log này đã bị xoá (chỉ giữ 20 job gần nhất).",
+    "tail_pane_live_label": "— live —",
+    "history_card_heading": "Lịch sử lệnh",
+    "history_dropdown_label": "Chọn lệnh để xem lại",
+    "history_default_option": "— Theo dõi lệnh mới nhất —",
+    "history_empty": "Chưa có lịch sử lệnh.",
+    "toast_lock_busy": "Đang có lệnh khác chạy, vui lòng đợi",
+    "toast_job_sent": "Đã gửi lệnh: {action} {service}",
+    "toast_job_failed": (
+        "Lệnh kết thúc với lỗi (exit {code}). Xem chi tiết ở khung đầu ra."
+    ),
+    "error_500": "Lỗi máy chủ. Vui lòng tải lại trang hoặc kiểm tra /var/log/qlsv/.",
+    "error_network": "Không thể liên hệ máy chủ. Đang thử lại...",
+    "action_label_start_all": "Start all",
+    "action_label_stop_all": "Stop all",
+    "action_label_start": "Start",
+    "action_label_stop": "Stop",
+    "action_bar_running": "Đang chạy lệnh...",
+
     # ---- Legacy keys merged from 2.3.2/app.py:36-52 ----
     # (package version available via qlsv.__version__; legacy version key dropped)
     "app_title": "Quản lý server",

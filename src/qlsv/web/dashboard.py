@@ -15,14 +15,25 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import RedirectResponse, Response
 
+from pathlib import Path
+
 from qlsv import processes, state
 from qlsv.i18n import TRANSLATION
+from qlsv.jobs import history, log_stream, runner
 from qlsv.processes import (
     SERVICE_DISPLAY_LABELS,
     SERVICE_PGREP_PATTERNS,
     compute_status,
 )
 from qlsv.web.auth import require_auth
+
+_ACTION_VI = {
+    "start_all": "Start all",
+    "stop_all": "Stop all",
+    "start": "Start",
+    "stop": "Stop",
+}
+_LIVE_REATTACH_BYTES = 64 * 1024  # 64 KiB
 
 router = APIRouter()
 
@@ -59,6 +70,67 @@ def _poll_interval(request: Request) -> int:
         return 5
 
 
+def _annotate_job(job: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not job:
+        return None
+    enriched = dict(job)
+    enriched["action_vi"] = _ACTION_VI.get(
+        job.get("action", ""), job.get("action", "")
+    )
+    return enriched
+
+
+def _read_tail(path: Path, max_bytes: int = _LIVE_REATTACH_BYTES) -> str:
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return ""
+    try:
+        with open(path, "rb") as f:
+            if size > max_bytes:
+                f.seek(size - max_bytes)
+            data = f.read()
+    except OSError:
+        return ""
+    return data.decode("utf-8", errors="replace")
+
+
+def _build_history_options(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Format <option> rows for the history dropdown — most-recent first."""
+    out: list[dict[str, Any]] = []
+    for j in reversed(jobs[-20:]):
+        jid = j.get("id")
+        if not jid:
+            continue
+        started = (j.get("started_at") or "")[:16].replace("T", " ")
+        action_vi = _ACTION_VI.get(j.get("action", ""), j.get("action", ""))
+        svc = j.get("service") or ""
+        exit_code = j.get("exit_code")
+        if exit_code is None:
+            tail = ""
+        else:
+            tail = f" (exit {exit_code})"
+        label = f"{started} — {action_vi} {svc}{tail}".strip()
+        out.append({"id": jid, "label": label})
+    return out
+
+
+def _resolve_last_job() -> tuple[dict[str, Any] | None, bool, str]:
+    """Return (job, attach_sse, log_text) for the dashboard render."""
+    current = runner.current_job()
+    if current is None:
+        jobs = history.list_jobs()
+        current = jobs[-1] if jobs else None
+        if current is None:
+            return None, False, ""
+        attach = False
+    else:
+        attach = current.get("ended_at") is None
+
+    log_text = _read_tail(log_stream.JOB_LOG_DIR / f"{current['id']}.log")
+    return current, attach, log_text
+
+
 @router.get("/", include_in_schema=False)
 def dashboard_root(request: Request) -> Response:
     """Render the authenticated dashboard with the live service status table."""
@@ -72,6 +144,10 @@ def dashboard_root(request: Request) -> Response:
     poll_interval = _poll_interval(request)
     refresh_hint = TRANSLATION["refresh_hint_template"].format(seconds=poll_interval)
 
+    last_job, attach_sse, last_job_log = _resolve_last_job()
+    action_running = runner.current_job() is not None
+    history_options = _build_history_options(history.list_jobs())
+
     templates = request.app.state.templates
     return templates.TemplateResponse(
         "dashboard.html",
@@ -84,6 +160,11 @@ def dashboard_root(request: Request) -> Response:
             "refresh_hint": refresh_hint,
             "services_empty_heading": TRANSLATION["services_empty_heading"],
             "services_empty_body": TRANSLATION["services_empty_body"],
+            "last_job": _annotate_job(last_job),
+            "last_job_log": last_job_log,
+            "attach_sse": attach_sse,
+            "action_running": action_running,
+            "history_options": history_options,
         },
     )
 
@@ -104,15 +185,18 @@ def services_status_partial(request: Request) -> Response:
 
     rows = _build_rows()
     poll_interval = _poll_interval(request)
+    action_running = runner.current_job() is not None
 
     templates = request.app.state.templates
     return templates.TemplateResponse(
         "_service_table.html",
         {
             "request": request,
+            "t": TRANSLATION,
             "rows": rows,
             "poll_interval": poll_interval,
             "services_empty_heading": TRANSLATION["services_empty_heading"],
             "services_empty_body": TRANSLATION["services_empty_body"],
+            "action_running": action_running,
         },
     )

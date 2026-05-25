@@ -27,7 +27,16 @@
   <tr data-service="{{ row.service }}">
     <td>{{ row.label }}</td>
     <td><span class="badge badge-{{ row.status }}">{{ row.badge_text }}</span></td>
-    <td class="service-table-actions"><!-- Per-row Start/Stop sẽ ở plan 03 --></td>
+    <td class="service-table-actions">
+      <button class="btn-primary btn-compact"
+              hx-post="/api/services/start?service={{ row.service }}"
+              hx-swap="none"
+              {% if action_running %}disabled{% endif %}>{{ t.btn_start_row }}</button>
+      <button class="btn-destructive btn-compact"
+              hx-post="/api/services/stop?service={{ row.service }}"
+              hx-swap="none"
+              {% if action_running %}disabled{% endif %}>{{ t.btn_stop_row }}</button>
+    </td>
   </tr>
   {% endfor %}
 {% endif %}

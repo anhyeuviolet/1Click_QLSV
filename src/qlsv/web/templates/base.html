@@ -5,10 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Quản lý server{% endblock %}</title>
   <link rel="stylesheet" href="/static/styles.css">
-  <script defer src="/static/htmx.min.js"></script>
+  <script src="/static/htmx.min.js"></script>
+  <script src="/static/htmx-ext-sse.min.js"></script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
 {% block header %}{% endblock %}
 {% block content %}{% endblock %}
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+<script>
+(function () {
+  function showToast(message, kind) {
+    var c = document.getElementById('toast-container');
+    if (!c) return;
+    var el = document.createElement('div');
+    el.className = 'toast toast-' + (kind || 'warning');
+    el.setAttribute('role', 'alert');
+    el.textContent = '⚠ ' + message;
+    c.appendChild(el);
+    setTimeout(function () { el.remove(); }, 5000);
+  }
+  document.body.addEventListener('lock-busy', function () {
+    showToast('Đang có lệnh khác chạy, vui lòng đợi', 'warning');
+  });
+  document.body.addEventListener('htmx:afterSwap', function (evt) {
+    var pre = document.getElementById('tail-pane-output');
+    if (pre) pre.scrollTop = pre.scrollHeight;
+    var pane = document.getElementById('tail-pane');
+    var tgt = evt && evt.detail && evt.detail.target;
+    if (pane && tgt && tgt.id === 'tail-pane' && window.htmx) {
+      window.htmx.process(pane);
+    }
+  });
+})();
+</script>
 </body>
 </html>

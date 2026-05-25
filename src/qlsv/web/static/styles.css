@@ -354,3 +354,134 @@ body.app-shell {
   font-size: 14px;
   margin-bottom: var(--space-md);
 }
+
+/* ------------------------------------------------------------------------- */
+/* Phase 2 Plan 03 — destructive button, action bar, tail-pane, toasts       */
+/* ------------------------------------------------------------------------- */
+
+:root {
+  --color-destructive-hover: #B91C1C;
+  --color-destructive-active: #991B1B;
+  --color-mono-bg: #0F172A;
+  --color-mono-text: #E5E7EB;
+  --font-mono: 400 14px/1.5 ui-monospace, "Cascadia Code", "Consolas", "Menlo", "DejaVu Sans Mono", monospace;
+}
+
+.btn-destructive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 var(--space-lg);
+  background: var(--color-destructive);
+  color: #FFFFFF;
+  font: 600 16px/1 var(--font-stack);
+  border: none;
+  border-radius: var(--radius-input);
+  cursor: pointer;
+}
+
+.btn-destructive:hover {
+  background: var(--color-destructive-hover);
+}
+
+.btn-destructive:active {
+  background: var(--color-destructive-active);
+}
+
+.btn-destructive:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+}
+
+.btn-destructive:disabled,
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-compact {
+  height: 32px;
+  padding: 0 var(--space-md);
+  font: 600 14px/1 var(--font-stack);
+  width: auto;
+}
+
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-md) 0;
+}
+
+.action-bar-spacer {
+  flex: 1 1 auto;
+}
+
+.tail-pane {
+  margin-top: var(--space-lg);
+  max-width: none;
+}
+
+.tail-pane-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.tail-pane-header h2 {
+  margin: 0;
+  font: var(--font-heading);
+}
+
+.tail-pane-sublabel {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.tail-pane-output {
+  font: var(--font-mono);
+  background: var(--color-mono-bg);
+  color: var(--color-mono-text);
+  padding: var(--space-md);
+  border-radius: var(--radius-input);
+  min-height: 240px;
+  max-height: 480px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  z-index: 1000;
+}
+
+.toast {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-md);
+  min-width: 280px;
+  max-width: 400px;
+  box-shadow: var(--shadow-card);
+}
+
+.toast-warning {
+  border-left: 3px solid var(--color-status-crashed);
+}
+
+.toast-error {
+  border-left: 3px solid var(--color-destructive);
+  color: var(--color-destructive);
+}
+
+.toast-success {
+  border-left: 3px solid var(--color-status-running);
+}
