@@ -8,7 +8,18 @@
 # forced to pin --workers 1 explicitly.
 #
 # Dev launcher cho qlsv-web. Vietnamese (no diacritics) per bash convention.
+#
+# Cho admin: dung ../start.sh o repo root thay vi script nay — start.sh tu
+# bootstrap venv + config. Script nay danh cho dev / khi venv da co san.
 set -euo pipefail
 
+REPO_ROOT="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VENV="$REPO_ROOT/.venv"
+if [ -x "$VENV/bin/python" ]; then
+  PYTHON="$VENV/bin/python"
+else
+  PYTHON="python3"
+fi
+
 echo "Khoi dong qlsv-web (--workers 1 enforced by python -m qlsv entrypoint)..."
-exec python -m qlsv
+exec "$PYTHON" -m qlsv

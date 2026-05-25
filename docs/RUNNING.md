@@ -5,18 +5,34 @@ boot-time auto-start lands in Phase 4 — for now you start the app yourself.
 
 ---
 
-## Quick start
+## Quick start (1-click)
+
+Trên VM mới, từ thư mục repo, chỉ cần một lệnh:
 
 ```bash
-# 1. Install the package (editable mode is fine on the server)
-sudo pip install -e .
+sudo bash start.sh
+```
 
-# 2. Configure /root/.quanlyserver.json — see docs/CONFIG.md
-#    (set admin.username, admin.password, session.secret_key)
+Lần đầu chạy (khoảng 30 giây, cần Internet) `start.sh` sẽ:
 
-# 3. Launch the web admin
-sudo bash scripts/run-web.sh
-#    (equivalent to: sudo python -m qlsv)
+1. Tạo virtualenv tại `./.venv` (qua `python3 -m venv`) và cài FastAPI/uvicorn/Jinja2 vào đó — không đụng system Python (PEP 668 safe trên Debian 12+/Ubuntu 24.04).
+2. Copy `configs/quanlyserver.example.json` → `/root/.quanlyserver.json`, sinh `session.secret_key` ngẫu nhiên, chmod 0600.
+3. In hướng dẫn: mở `/root/.quanlyserver.json`, sửa `admin.username` và `admin.password` thành giá trị thật, rồi chạy lại `sudo bash start.sh`.
+
+Lần thứ hai trở đi `start.sh` thấy `.venv/` và config đã có thì launch ngay — vài giây là app lên ở **http://&lt;server-ip&gt;:8080**.
+
+### Phương án thủ công (dev / debug)
+
+Nếu cần kiểm soát từng bước (ví dụ thay deps, debug cài đặt):
+
+```bash
+sudo apt-get install -y python3-venv python3-pip
+sudo python3 -m venv .venv
+sudo .venv/bin/pip install -e .
+sudo cp configs/quanlyserver.example.json /root/.quanlyserver.json
+sudo chmod 0600 /root/.quanlyserver.json
+sudo nano /root/.quanlyserver.json   # set admin + secret_key
+sudo bash scripts/run-web.sh         # dùng .venv tự động nếu có
 ```
 
 Default URL: **http://<server-ip>:8080**
