@@ -28,8 +28,15 @@ def main() -> None:
     app = create_app(config)
 
     web = config.get("web", {})
+    try:
+        port = int(web.get("port", 8080))
+    except (TypeError, ValueError) as e:
+        print(f"Cấu hình web.port không hợp lệ: {e}", file=sys.stderr)
+        sys.exit(1)
     bind_addr = web.get("bind_addr", "0.0.0.0")
-    port = int(web.get("port", 8080))
+    if not isinstance(bind_addr, str) or not bind_addr:
+        print("Cấu hình web.bind_addr không hợp lệ", file=sys.stderr)
+        sys.exit(1)
 
     # Vietnamese startup banner (D-09, D-10). journalctl handles UTF-8.
     print(f"Quản lý server v{__version__} - lắng nghe trên http://{bind_addr}:{port}")
