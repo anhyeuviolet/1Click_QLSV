@@ -21,11 +21,10 @@ def main() -> None:
 
     try:
         config = load_config(path)
+        app = create_app(config)
     except ConfigError as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
-
-    app = create_app(config)
 
     web = config.get("web", {})
     try:

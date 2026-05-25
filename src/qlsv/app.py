@@ -17,6 +17,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from qlsv import __version__
+from qlsv.config import ConfigError
 from qlsv.web import auth, dashboard
 
 _WEB_DIR = Path(__file__).parent / "web"
@@ -47,7 +48,7 @@ def create_app(config: dict) -> FastAPI:
     secret_key = session_cfg.get("secret_key")
     if not secret_key:
         # Fail-fast: config loader should already have caught this, but be defensive.
-        raise RuntimeError("session.secret_key is not configured")
+        raise ConfigError("Chưa cấu hình session.secret_key")
     app.add_middleware(
         SessionMiddleware,
         secret_key=secret_key,
