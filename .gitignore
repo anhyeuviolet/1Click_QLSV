@@ -46,3 +46,12 @@ env/
 *.log
 *.tmp
 *.bak
+
+# ===== Python build / test =====
+dist/
+build/
+.pytest_cache/
+
+# ===== Admin config (lives at absolute path; documented here for ops) =====
+# /root/.quanlyserver.json is the runtime config — never committed.
+# Its example shape lives at configs/quanlyserver.example.json.

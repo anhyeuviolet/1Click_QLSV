@@ -1,0 +1,34 @@
+{
+  "game": {
+    "directory": "/home/jxser",
+    "server_ip": "",
+    "server_mac": ""
+  },
+  "web": {
+    "bind_addr": "0.0.0.0",
+    "port": 8080,
+    "idle_timeout_seconds": 2592000,
+    "cookie_secure": false
+  },
+  "admin": {
+    "username": "REPLACE_ME",
+    "password": "REPLACE_ME"
+  },
+  "session": {
+    "secret_key": "REPLACE_ME"
+  },
+  "db": {
+    "mysql": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "user": "root",
+      "password": "REPLACE_ME"
+    },
+    "mssql": {
+      "host": "127.0.0.1",
+      "port": 1433,
+      "user": "SA",
+      "password": "REPLACE_ME"
+    }
+  }
+}
