@@ -129,8 +129,11 @@ def migrate_if_needed(path: str = CONFIGFILE) -> bool:
     if not has_legacy:
         return False
 
-    # Back up the original first (T-01-04).
-    shutil.copy2(path, path + BACKUP_SUFFIX)
+    # Back up the original first (T-01-04). Refuse to overwrite an existing
+    # backup so the original v2.x recovery copy is preserved across re-runs.
+    backup = path + BACKUP_SUFFIX
+    if not os.path.exists(backup):
+        shutil.copy2(path, backup)
 
     new: dict[str, Any] = {}
     game_section: dict[str, Any] = dict(data.get("game", {})) if isinstance(data.get("game"), dict) else {}
