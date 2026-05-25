@@ -13,11 +13,13 @@ Public API (contract — Plan 02 / Plan 03 consume):
 """
 from __future__ import annotations
 
+import ipaddress
 import json
 import os
 import shutil
-import sys
 from typing import Any
+
+from qlsv._atomic import write_json
 
 CONFIGFILE: str = "/root/.quanlyserver.json"
 BACKUP_SUFFIX: str = ".pre-v3.bak"
@@ -40,6 +42,20 @@ WEB_DEFAULTS: dict[str, Any] = {
     "idle_timeout_seconds": 2592000,
     "cookie_secure": False,
 }
+
+# Default values applied to `dashboard` section if absent (Plan 02 D-09).
+DASHBOARD_DEFAULTS: dict[str, Any] = {
+    "poll_interval_seconds": 5,
+}
+
+# Bind addresses that would lock admins out of the LAN (WEB-02 / M-2).
+# Both IPv4 loopback (entire 127.0.0.0/8) and IPv6 loopback variants are rejected.
+LOOPBACK_DENY: frozenset[str] = frozenset({
+    "127.0.0.1",
+    "localhost",
+    "::1",
+    "0:0:0:0:0:0:0:1",
+})
 
 
 class ConfigError(Exception):
@@ -77,30 +93,11 @@ def _read_json(path: str) -> dict:
 def save_config(data: dict, path: str = CONFIGFILE) -> None:
     """Atomically write `data` as JSON to `path`, then chmod 0600 on POSIX.
 
-    Writes to `path + ".tmp"` first, then `os.replace` so a crash never leaves a
-    half-written config (T-01-01). `ensure_ascii=False` so Vietnamese diacritics
-    persist as-is.
+    Thin wrapper around ``qlsv._atomic.write_json`` (Phase 2 H-6 — shared
+    helper). Behaviour-identical to the inline implementation Phase 1
+    shipped: tmp+rename, 0600 from creation, Windows fallback.
     """
-    tmp = path + ".tmp"
-    parent = os.path.dirname(path)
-    if parent and not os.path.isdir(parent):
-        os.makedirs(parent, exist_ok=True)
-    # Create tmp with 0600 from the start so the post-rename file is never
-    # world-readable, even briefly (T-01-01). On Windows the mode bits are
-    # ignored by os.open / os.chmod, so fall back to plain open() there.
-    if not sys.platform.startswith("win"):
-        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-        fd = os.open(tmp, flags, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-            f.write("\n")
-        # Belt + braces in case the process umask widened the mode.
-        os.chmod(tmp, 0o600)
-    else:
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-            f.write("\n")
-    os.replace(tmp, path)
+    write_json(path, data, mode=0o600)
 
 
 def migrate_if_needed(path: str = CONFIGFILE) -> bool:
@@ -198,5 +195,43 @@ def load_config(path: str = CONFIGFILE) -> dict:
     if isinstance(web, dict):
         for k, default in WEB_DEFAULTS.items():
             web.setdefault(k, default)
+
+        # WEB-02 / M-2: reject loopback bind_addr (IPv4 + IPv6 variants).
+        # Fail-fast in Vietnamese; do NOT silently bind to a LAN-unreachable
+        # address.
+        raw = web.get("bind_addr", "")
+        bind_addr = str(raw).strip().lower()
+        # Strip IPv6 bracket form `[...]`.
+        if bind_addr.startswith("[") and bind_addr.endswith("]"):
+            bind_addr_check = bind_addr[1:-1]
+        else:
+            bind_addr_check = bind_addr
+
+        is_loopback = False
+        if bind_addr_check in LOOPBACK_DENY:
+            is_loopback = True
+        elif bind_addr_check.startswith("127."):
+            # Entire IPv4 loopback /8 — covers 127.0.0.5 etc.
+            is_loopback = True
+        else:
+            # Defensive parse for canonical/non-canonical IPv6 loopback forms.
+            try:
+                is_loopback = ipaddress.ip_address(bind_addr_check).is_loopback
+            except ValueError:
+                # Not an IP literal — could be a hostname like "myserver.local".
+                # We do not resolve hostnames; admin is on the hook for those.
+                is_loopback = False
+
+        if is_loopback:
+            raise ConfigError(
+                "web.bind_addr không được trỏ loopback (WEB-02). "
+                "Dùng 0.0.0.0 hoặc địa chỉ LAN cụ thể."
+            )
+
+    # Apply dashboard defaults if absent (Plan 02 — poll_interval_seconds).
+    dash = data.setdefault("dashboard", {})
+    if isinstance(dash, dict):
+        for k, default in DASHBOARD_DEFAULTS.items():
+            dash.setdefault(k, default)
 
     return data
