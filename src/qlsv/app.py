@@ -19,6 +19,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from qlsv import __version__
 from qlsv.config import ConfigError
 from qlsv.web import auth, dashboard
+from qlsv.web import jobs as web_jobs
+from qlsv.web import services as web_services
 
 _WEB_DIR = Path(__file__).parent / "web"
 _TEMPLATES_DIR = _WEB_DIR / "templates"
@@ -67,5 +69,12 @@ def create_app(config: dict) -> FastAPI:
     app.include_router(auth.router)
     # Dashboard router: GET /.
     app.include_router(dashboard.router)
+    # Plan 02-03 routers: Start/Stop + job log / live-tail.
+    # IMPORTANT: uvicorn MUST run with ``--workers 1`` — the job runner's
+    # asyncio.Lock is process-local, so multiple workers would each
+    # accept concurrent jobs and race on jx.sh. The Phase 4 systemd unit
+    # pins this.
+    app.include_router(web_services.router)
+    app.include_router(web_jobs.router)
 
     return app

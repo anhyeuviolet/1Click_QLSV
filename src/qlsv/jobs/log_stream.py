@@ -44,8 +44,10 @@ def validate_job_id(job_id: str) -> bool:
     return bool(_JOB_ID_RE.fullmatch(job_id))
 
 
-def _read_exit(job_id: str, log_dir: Path = JOB_LOG_DIR) -> int | None:
+def _read_exit(job_id: str, log_dir: Path | None = None) -> int | None:
     """Read ``<job_id>.exit`` if present; parse ``exit=<n>``. Bad parse → -1."""
+    if log_dir is None:
+        log_dir = JOB_LOG_DIR
     exit_path = log_dir / f"{job_id}.exit"
     if not exit_path.exists():
         return None
@@ -82,7 +84,7 @@ def _frame_data(line_bytes: bytes) -> bytes:
 
 async def tail_file(
     job_id: str,
-    log_dir: Path = JOB_LOG_DIR,
+    log_dir: Path | None = None,
 ) -> AsyncIterator[bytes]:
     """Async generator yielding SSE frames for ``<job_id>.log``.
 
@@ -90,6 +92,8 @@ async def tail_file(
     """
     if not validate_job_id(job_id):
         raise ValueError("job_id không hợp lệ")
+    if log_dir is None:
+        log_dir = JOB_LOG_DIR
 
     log_path = log_dir / f"{job_id}.log"
 

@@ -1,0 +1,27 @@
+{# Tail-pane partial (Plan 02-03 DASH-04, H-3).
+
+   When ``attach_sse`` is True (= the last_job is still running), the <pre>
+   carries ``hx-ext="sse" sse-connect=...`` so HTMX kicks off the SSE
+   stream. When False (history view) the same wrapper is returned WITHOUT
+   sse-connect — swapping outerHTML on #tail-pane kills the previous DOM
+   node and with it any active SSE listener.
+
+   The wrapper id ``tail-pane`` is the HTMX swap target; the inner <pre>
+   id ``tail-pane-output`` is the auto-scroll target.
+#}
+<section class="card tail-pane" id="tail-pane">
+  <header class="tail-pane-header">
+    <h2>{{ t.tail_pane_heading }}</h2>
+    <span class="tail-pane-sublabel">
+      {% if last_job and last_job.ended_at is none %}
+        {{ t.tail_pane_sublabel_running.format(action=last_job.action_vi, service=last_job.service or "") }}
+      {% elif last_job %}
+        {{ t.tail_pane_sublabel_done.format(action=last_job.action_vi, service=last_job.service or "", code=last_job.exit_code if last_job.exit_code is not none else "?") }}
+      {% endif %}
+    </span>
+  </header>
+  <pre id="tail-pane-output"
+       class="tail-pane-output"
+       {% if attach_sse and last_job %}hx-ext="sse" sse-connect="/api/jobs/log?job_id={{ last_job.id }}&amp;mode=stream" sse-swap="message" hx-swap="beforeend"{% endif %}
+       aria-live="polite" aria-atomic="false">{% if not last_job %}{{ t.tail_pane_empty }}{% else %}{{ last_job_log }}{% endif %}</pre>
+</section>
