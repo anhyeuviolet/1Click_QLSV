@@ -85,12 +85,22 @@ def save_config(data: dict, path: str = CONFIGFILE) -> None:
     parent = os.path.dirname(path)
     if parent and not os.path.isdir(parent):
         os.makedirs(parent, exist_ok=True)
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
-    os.replace(tmp, path)
+    # Create tmp with 0600 from the start so the post-rename file is never
+    # world-readable, even briefly (T-01-01). On Windows the mode bits are
+    # ignored by os.open / os.chmod, so fall back to plain open() there.
     if not sys.platform.startswith("win"):
-        os.chmod(path, 0o600)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        fd = os.open(tmp, flags, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        # Belt + braces in case the process umask widened the mode.
+        os.chmod(tmp, 0o600)
+    else:
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+    os.replace(tmp, path)
 
 
 def migrate_if_needed(path: str = CONFIGFILE) -> bool:
