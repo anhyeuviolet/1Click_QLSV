@@ -29,6 +29,16 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
+# Defensive: strip Windows CR from shell scripts if git's autocrlf converted
+# LF→CRLF on checkout. Without this, bash fails with `syntax error near
+# unexpected token $'{\r''`. .gitattributes (eol=lf) is the long-term fix
+# but won't help if the user cloned before it landed.
+for f in "$APPPATH"/scripts/*.sh "$APPPATH"/start.sh "$APPPATH"/update.sh; do
+  if [ -f "$f" ] && grep -q $'\r' "$f"; then
+    sed -i 's/\r$//' "$f"
+  fi
+done
+
 # ---- Bootstrap lan dau: cai venv + deps -------------------------------------
 
 if [ ! -x "$VENV/bin/python" ]; then

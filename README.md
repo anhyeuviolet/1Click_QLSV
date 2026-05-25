@@ -2,12 +2,12 @@
 
 ## I. Giới thiệu
 
-Ứng dụng Quản lý Server JX là công cụ hỗ trợ quản lý và điều khiển server game JX trên môi trường Linux. Đặc biệt dùng cho [Bộ cài đặt Võ Lâm Offline 1ClickVMFull](https://docs.google.com/document/d/1BUtlCyJdIg-Dc15EZLYU7dMAcGA4wzcZDMBrM3dRpcc/edit?usp=sharing)
+Ứng dụng Quản lý Server JX là công cụ hỗ trợ quản lý và điều khiển server game JX trên môi trường Linux.
 
 Phần mềm cung cấp giao diện đồ họa trực quan giúp người dùng dễ dàng khởi động, dừng các dịch vụ cần thiết và quản lý server.
 
 Tác giả: **Vinh-TTN**
-
+Fork: anhyeuviolet
 
 ## II. Các tính năng chính
 
@@ -19,7 +19,7 @@ Tác giả: **Vinh-TTN**
 6. Quản lý tài khoản người chơi
 7. Sao chép (Copy) game server từ máy ảo khác
 
-## III. Cài đặt thủ công (nếu không sử dụng [Bộ cài đặt Võ Lâm Offline 1ClickVMFull](https://docs.google.com/document/d/1BUtlCyJdIg-Dc15EZLYU7dMAcGA4wzcZDMBrM3dRpcc/edit?usp=sharing))
+## III. Cài đặt thủ công
 
 1. Đảm bảo Python 3 và tkinter đã được cài đặt:
    ```
@@ -35,7 +35,7 @@ Tác giả: **Vinh-TTN**
 
 ## IV. Hướng dẫn sử dụng
 
-### A. Khởi động ứng dụng (nếu không sử dụng [Bộ cài đặt Võ Lâm Offline 1ClickVMFull](https://docs.google.com/document/d/1BUtlCyJdIg-Dc15EZLYU7dMAcGA4wzcZDMBrM3dRpcc/edit?usp=sharing))
+### A. Khởi động ứng dụng
 
 Dưới quyền **root**:
 ```

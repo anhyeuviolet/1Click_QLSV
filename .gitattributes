@@ -1,0 +1,29 @@
+# Force LF for files that MUST have unix line endings when checked out on
+# Windows (otherwise bash + python on Linux see literal \r and choke).
+# See: scripts/jx.sh "syntax error near unexpected token $'{\r'" on Debian VM.
+
+# Default: let git auto-detect text vs binary.
+* text=auto
+
+# Shell scripts — LF or bash dies.
+*.sh         text eol=lf
+start.sh     text eol=lf
+update.sh    text eol=lf
+
+# Python / config / web — LF on all platforms (Linux is the deployment target).
+*.py         text eol=lf
+*.html       text eol=lf
+*.css        text eol=lf
+*.js         text eol=lf
+*.json       text eol=lf
+*.toml       text eol=lf
+*.cfg        text eol=lf
+*.ini        text eol=lf
+*.md         text eol=lf
+
+# Binary — never touch.
+*.png        binary
+*.jpg        binary
+*.gif        binary
+*.ico        binary
+*.sha256     text eol=lf
